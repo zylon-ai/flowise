@@ -120,7 +120,7 @@ class ChatAnthropic_ChatModels implements INode {
         }
 
         const credentialData = await getCredentialData(nodeData.credential ?? '', options)
-        const zylonApiKey = getCredentialParam('zylonApiKey', credentialData, nodeData, undefined)
+        const zylonApiKey = getCredentialParam('zylonApiKey', credentialData, nodeData)
 
         if (maxTokens) obj.maxTokens = parseInt(maxTokens, 10)
         if (topP) obj.topP = parseFloat(topP)
@@ -134,7 +134,7 @@ class ChatAnthropic_ChatModels implements INode {
         }
 
         obj.anthropicApiUrl = ZYLON_HOST
-        obj.anthropicApiKey = zylonApiKey
+        obj.anthropicApiKey = zylonApiKey ?? 'no-key'
         return new LangchainChatAnthropic(obj)
     }
 }
