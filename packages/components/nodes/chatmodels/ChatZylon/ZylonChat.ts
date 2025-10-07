@@ -18,7 +18,7 @@ class ChatAnthropic_ChatModels implements INode {
     inputs: INodeParams[]
 
     constructor() {
-        this.label = 'chatZylon'
+        this.label = 'ChatZylon'
         this.name = 'chatZylon'
         this.version = 8.0
         this.type = 'chatZylon'
@@ -33,6 +33,13 @@ class ChatAnthropic_ChatModels implements INode {
             credentialNames: ['zylonApi']
         }
         this.inputs = [
+            {
+                label: 'Model Name',
+                name: 'modelName',
+                type: 'string',
+                placeholder: 'qwen-3-14b-awq',
+                optional: false
+            },
             {
                 label: 'Temperature',
                 name: 'temperature',
@@ -115,7 +122,8 @@ class ChatAnthropic_ChatModels implements INode {
 
         const obj: Partial<AnthropicInput> & BaseLLMParams & { anthropicApiKey?: string } = {
             temperature: parseFloat(temperature),
-            model: modelName,
+            model: modelName || 'default',
+            modelName: modelName || 'default',
             streaming: streaming ?? true
         }
 
