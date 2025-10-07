@@ -34,6 +34,16 @@ class ChatAnthropic_ChatModels implements INode {
         }
         this.inputs = [
             {
+                label: 'Zylon Host',
+                description:
+                    'Zylon API host, where your Zylon instance is hosted. ' +
+                    'Default to env variable ZYLON_HOST or http://localhost:8001 if not set.' +
+                    'A valid host should like https://zylon.yourdomain.com/api/gpt',
+                name: 'zylonHost',
+                type: 'string',
+                optional: true
+            },
+            {
                 label: 'Model Name',
                 name: 'modelName',
                 type: 'string',
@@ -111,6 +121,12 @@ class ChatAnthropic_ChatModels implements INode {
     }
 
     async init(nodeData: INodeData, _: string, options: ICommonObject): Promise<any> {
+        // inputs
+        let host = nodeData.inputs?.zylonHost as string
+        if (!host) {
+            host = ZYLON_HOST
+        }
+        host = host.endsWith('/api/gpt') ? host : host + '/api/gpt'
         const temperature = nodeData.inputs?.temperature as string
         const modelName = nodeData.inputs?.modelName as string
         const maxTokens = nodeData.inputs?.maxTokensToSample as string
@@ -141,7 +157,7 @@ class ChatAnthropic_ChatModels implements INode {
             delete obj.temperature
         }
 
-        obj.anthropicApiUrl = ZYLON_HOST
+        obj.anthropicApiUrl = host
         obj.anthropicApiKey = zylonApiKey ?? 'no-key'
         return new LangchainChatAnthropic(obj)
     }
