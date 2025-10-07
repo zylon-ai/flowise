@@ -77,20 +77,7 @@ export class RedisEventPublisher implements IServerSideEventStreamer {
     }
 
     async connect() {
-        logger.info(`[RedisEventPublisher] Connecting to Redis...`)
         await this.redisPublisher.connect()
-
-        // Log connection details after successful connection
-        const connInfo = this.redisPublisher.options?.socket
-        const connInfoString = JSON.stringify(connInfo)
-            .replace(/"username":"[^"]*"/g, '"username":"[REDACTED]"')
-            .replace(/"password":"[^"]*"/g, '"password":"[REDACTED]"')
-        logger.info(`[RedisEventPublisher] Connected to Redis: ${connInfoString}`)
-
-        // Add error event listener
-        this.redisPublisher.on('error', (err) => {
-            logger.error(`[RedisEventPublisher] Redis connection error`, { error: err })
-        })
     }
 
     streamCustomEvent(chatId: string, eventType: string, data: any) {
@@ -390,6 +377,70 @@ export class RedisEventPublisher implements IServerSideEventStreamer {
             )
         } catch (error) {
             console.error('Error streaming usage metadata event:', error)
+        }
+    }
+
+    streamTTSStartEvent(chatId: string, chatMessageId: string, format: string): void {
+        try {
+            this.redisPublisher.publish(
+                chatId,
+                JSON.stringify({
+                    chatId,
+                    chatMessageId,
+                    eventType: 'tts_start',
+                    data: { format }
+                })
+            )
+        } catch (error) {
+            console.error('Error streaming TTS start event:', error)
+        }
+    }
+
+    streamTTSDataEvent(chatId: string, chatMessageId: string, audioChunk: string): void {
+        try {
+            this.redisPublisher.publish(
+                chatId,
+                JSON.stringify({
+                    chatId,
+                    chatMessageId,
+                    eventType: 'tts_data',
+                    data: audioChunk
+                })
+            )
+        } catch (error) {
+            console.error('Error streaming TTS data event:', error)
+        }
+    }
+
+    streamTTSEndEvent(chatId: string, chatMessageId: string): void {
+        try {
+            this.redisPublisher.publish(
+                chatId,
+                JSON.stringify({
+                    chatId,
+                    chatMessageId,
+                    eventType: 'tts_end',
+                    data: {}
+                })
+            )
+        } catch (error) {
+            console.error('Error streaming TTS end event:', error)
+        }
+    }
+
+    streamTTSAbortEvent(chatId: string, chatMessageId: string): void {
+        try {
+            this.redisPublisher.publish(
+                chatId,
+                JSON.stringify({
+                    chatId,
+                    chatMessageId,
+                    eventType: 'tts_abort',
+                    data: {}
+                })
+            )
+        } catch (error) {
+            console.error('Error streaming TTS abort event:', error)
         }
     }
 

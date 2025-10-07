@@ -77,20 +77,7 @@ export class RedisEventSubscriber {
     }
 
     async connect() {
-        logger.info(`[RedisEventSubscriber] Connecting to Redis...`)
         await this.redisSubscriber.connect()
-
-        // Log connection details after successful connection
-        const connInfo = this.redisSubscriber.options?.socket
-        const connInfoString = JSON.stringify(connInfo)
-            .replace(/"username":"[^"]*"/g, '"username":"[REDACTED]"')
-            .replace(/"password":"[^"]*"/g, '"password":"[REDACTED]"')
-        logger.info(`[RedisEventSubscriber] Connected to Redis: ${connInfoString}`)
-
-        // Add error event listener
-        this.redisSubscriber.on('error', (err) => {
-            logger.error(`[RedisEventSubscriber] Redis connection error`, { error: err })
-        })
     }
 
     subscribe(channel: string) {
@@ -115,7 +102,7 @@ export class RedisEventSubscriber {
     private handleEvent(message: string) {
         // Parse the message from Redis
         const event = JSON.parse(message)
-        const { eventType, chatId, data } = event
+        const { eventType, chatId, chatMessageId, data } = event
 
         // Stream the event to the client
         switch (eventType) {
@@ -133,6 +120,9 @@ export class RedisEventSubscriber {
                 break
             case 'usedTools':
                 this.sseStreamer.streamUsedToolsEvent(chatId, data)
+                break
+            case 'calledTools':
+                this.sseStreamer.streamCalledToolsEvent(chatId, data)
                 break
             case 'fileAnnotations':
                 this.sseStreamer.streamFileAnnotationsEvent(chatId, data)
@@ -166,6 +156,21 @@ export class RedisEventSubscriber {
                 break
             case 'metadata':
                 this.sseStreamer.streamMetadataEvent(chatId, data)
+                break
+            case 'usageMetadata':
+                this.sseStreamer.streamUsageMetadataEvent(chatId, data)
+                break
+            case 'tts_start':
+                this.sseStreamer.streamTTSStartEvent(chatId, chatMessageId, data.format)
+                break
+            case 'tts_data':
+                this.sseStreamer.streamTTSDataEvent(chatId, chatMessageId, data)
+                break
+            case 'tts_end':
+                this.sseStreamer.streamTTSEndEvent(chatId, chatMessageId)
+                break
+            case 'tts_abort':
+                this.sseStreamer.streamTTSAbortEvent(chatId, chatMessageId)
                 break
         }
     }
